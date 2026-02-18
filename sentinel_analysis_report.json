@@ -1,0 +1,20 @@
+{
+  "kind": "auth",
+  "total_logs_processed": 25000,
+  "suspicious_activities": 0,
+  "critical_threats": 0,
+  "system_risk_level": "LOW",
+  "identified_threats": [],
+  "ml_model_health": {
+    "precision": 100,
+    "recall": 100,
+    "false_positive_rate": 0,
+    "classes": [
+      "BENIGN",
+      "BRUTE_FORCE",
+      "IMPOSSIBLE_TRAVEL",
+      "MFA_FATIGUE",
+      "PASSWORD_SPRAY"
+    ]
+  }
+}

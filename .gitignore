@@ -1,0 +1,25 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large Installers (Local only)
+*.exe
+*.msix
+
+# Data / Temp files (optional - keeping model if needed for deployment)
+# training_data/
+# *.csv
+
+# Vercel
+.vercel/
+
+# OS files
+.DS_Store
+Thumbs.db

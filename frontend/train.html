@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Nexus AI — Model Training</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#000000",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .upload-card {
+            transition: all 0.2s ease;
+        }
+
+        .upload-card:hover {
+            border-color: #000;
+        }
+
+        .dark .upload-card:hover {
+            border-color: #fff;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-black dark:text-white transition-colors duration-300">
+
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header
+            class="border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md z-40">
+            <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-black dark:bg-white flex items-center justify-center">
+                        <span class="material-icons-outlined text-white dark:text-black text-sm">model_training</span>
+                    </div>
+                    <span class="font-bold tracking-tight text-lg">NEXUS AI <span class="opacity-40 font-normal">/
+                            TRAIN</span></span>
+                </div>
+                <nav class="flex items-center gap-6">
+                    <a href="home.html"
+                        class="text-sm font-medium text-gray-500 hover:text-black dark:hover:text-white transition-colors">Analyze</a>
+                    <a href="dashboard.html"
+                        class="text-sm font-medium text-gray-500 hover:text-black dark:hover:text-white transition-colors">Dashboard</a>
+                    <a href="#" class="text-sm font-bold border-b-2 border-black dark:border-white pb-1">Train Model</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl mx-auto px-6 py-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+            <!-- Left: Inputs -->
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <h1 class="text-3xl font-display font-black tracking-tight mb-4">Train Your Model</h1>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                        Upload your specific datasets to fine-tune the detection engine. You can upload one or more file
+                        types.
+                        <br><br>
+                        <span class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Note</span> The model
+                        re-trains immediately.
+                    </p>
+                </div>
+
+                <form id="trainForm" class="space-y-4">
+                    <!-- Auth Logs -->
+                    <div
+                        class="upload-card border border-dashed border-gray-300 dark:border-gray-700 p-4 rounded group hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer relative">
+                        <label class="block cursor-pointer">
+                            <span
+                                class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Authentication
+                                Logs</span>
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons-outlined text-gray-400">vpn_key</span>
+                                <span
+                                    class="text-sm font-medium file-name-display text-gray-600 dark:text-gray-300">Select
+                                    `.csv` file...</span>
+                            </div>
+                            <input type="file" name="auth_file" accept=".csv" class="hidden" multiple
+                                onchange="updateFileName(this)">
+                        </label>
+                    </div>
+
+                    <!-- Netflow -->
+                    <div
+                        class="upload-card border border-dashed border-gray-300 dark:border-gray-700 p-4 rounded group hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer relative">
+                        <label class="block cursor-pointer">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">Netflow
+                                Logs</span>
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons-outlined text-gray-400">router</span>
+                                <span
+                                    class="text-sm font-medium file-name-display text-gray-600 dark:text-gray-300">Select
+                                    `.csv` file...</span>
+                            </div>
+                            <input type="file" name="netflow_file" accept=".csv" class="hidden" multiple
+                                onchange="updateFileName(this)">
+                        </label>
+                    </div>
+
+                    <!-- DNS -->
+                    <div
+                        class="upload-card border border-dashed border-gray-300 dark:border-gray-700 p-4 rounded group hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer relative">
+                        <label class="block cursor-pointer">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">DNS
+                                Logs</span>
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons-outlined text-gray-400">dns</span>
+                                <span
+                                    class="text-sm font-medium file-name-display text-gray-600 dark:text-gray-300">Select
+                                    `.csv` file...</span>
+                            </div>
+                            <input type="file" name="dns_file" accept=".csv" class="hidden" multiple
+                                onchange="updateFileName(this)">
+                        </label>
+                    </div>
+
+                    <!-- HTTP -->
+                    <div
+                        class="upload-card border border-dashed border-gray-300 dark:border-gray-700 p-4 rounded group hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer relative">
+                        <label class="block cursor-pointer">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">HTTP
+                                Logs</span>
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons-outlined text-gray-400">http</span>
+                                <span
+                                    class="text-sm font-medium file-name-display text-gray-600 dark:text-gray-300">Select
+                                    `.csv` file...</span>
+                            </div>
+                            <input type="file" name="http_file" accept=".csv" class="hidden" multiple
+                                onchange="updateFileName(this)">
+                        </label>
+                    </div>
+
+                    <button type="submit" id="trainBtn"
+                        class="w-full py-4 bg-black dark:bg-white text-white dark:text-black font-bold text-sm tracking-widest uppercase hover:opacity-90 transition-opacity mt-8 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Start Training
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right: Results -->
+            <div class="lg:col-span-8">
+                <div
+                    class="border border-gray-200 dark:border-gray-800 h-full p-8 relative overflow-hidden bg-white dark:bg-background-dark">
+
+                    <!-- Initial State -->
+                    <div id="initialState"
+                        class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-black/20">
+                        <span
+                            class="material-icons-outlined text-6xl text-gray-200 dark:text-gray-800 mb-4">school</span>
+                        <h3 class="text-lg font-bold text-gray-400">Ready to Learn</h3>
+                        <p class="text-sm text-gray-400 mt-2 max-w-xs">Upload your data and start training to improve
+                            accuracy.</p>
+                    </div>
+
+                    <!-- Results Content (Hidden) -->
+                    <div id="resultsContent" class="hidden space-y-8 animate-fade-in relative z-10">
+                        <div
+                            class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-6">
+                            <div>
+                                <h3 class="text-xl font-bold">Training Results</h3>
+                                <p class="text-xs text-gray-500 mt-1" id="trainingTime">Completed just now</p>
+                            </div>
+                            <div
+                                class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase rounded">
+                                Success
+                            </div>
+                        </div>
+
+                        <!-- Metrics Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="metricsGrid">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <div
+                            class="p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-100 dark:border-gray-800 rounded text-xs text-gray-500">
+                            <strong class="text-black dark:text-white">Note:</strong> The RandomForest Classifier trains
+                            all epochs at once.
+                            These metrics reflect the final trained state on a 20% validation split.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processingOverlay"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white">
+        <div class="spinner mb-8"></div>
+        <h2 class="text-2xl font-bold mb-2">Training Model</h2>
+        <p class="text-gray-400 text-sm animate-pulse">Processing datasets and optimizing random forest trees...</p>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000'
+            : '';
+
+        function updateFileName(input) {
+            const display = input.parentElement.querySelector('.file-name-display');
+            if (input.files && input.files.length > 0) {
+                if (input.files.length === 1) {
+                    display.textContent = input.files[0].name;
+                } else {
+                    display.textContent = `${input.files.length} files selected`;
+                }
+                display.classList.add('text-black', 'dark:text-white');
+            } else {
+                display.textContent = 'Select `.csv` file...';
+                display.classList.remove('text-black', 'dark:text-white');
+            }
+        }
+
+        // Drag and Drop Logic
+        document.querySelectorAll('.upload-card').forEach(card => {
+            const input = card.querySelector('input[type="file"]');
+
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                card.classList.add('border-black', 'dark:border-white', 'bg-gray-50', 'dark:bg-gray-900');
+            });
+
+            card.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                card.classList.remove('border-black', 'dark:border-white', 'bg-gray-50', 'dark:bg-gray-900');
+            });
+
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                card.classList.remove('border-black', 'dark:border-white', 'bg-gray-50', 'dark:bg-gray-900');
+
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    input.files = e.dataTransfer.files;
+                    updateFileName(input);
+                }
+            });
+
+            // Allow clicking the card (if not hitting label) to trigger input
+            card.addEventListener('click', (e) => {
+                if (e.target !== input && e.target.tagName !== 'LABEL' && !e.target.closest('label')) {
+                    input.click();
+                }
+            });
+        });
+
+        document.getElementById('trainForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            // Check if at least one file is selected
+            let hasFile = false;
+            for (let pair of formData.entries()) {
+                if (pair[1].name) hasFile = true;
+            }
+
+            if (!hasFile) {
+                alert("Please select at least one file to train.");
+                return;
+            }
+
+            // Show overlay
+            const overlay = document.getElementById('processingOverlay');
+            overlay.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/train`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                const results = await response.json();
+                displayResults(results);
+
+            } catch (err) {
+                alert("Training failed: " + err.message);
+            } finally {
+                overlay.classList.add('hidden');
+            }
+        });
+
+        function displayResults(data) {
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('resultsContent').classList.remove('hidden');
+
+            const grid = document.getElementById('metricsGrid');
+            grid.innerHTML = '';
+
+            // data is dict of { kind: { precision, recall, fpr, ... } }
+            for (const [kind, stats] of Object.entries(data)) {
+                const p = (stats.precision * 100).toFixed(1);
+                const r = (stats.recall * 100).toFixed(1);
+                const fpr = (stats.false_positive_rate * 100).toFixed(2);
+
+                const card = document.createElement('div');
+                card.className = "p-6 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-black/20";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-sm uppercase tracking-widest">${kind}</h4>
+                        <span class="material-icons-outlined text-gray-400">equalizer</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 text-gray-500">
+                                <span>Precision</span>
+                                <span class="text-black dark:text-white font-mono">${p}%</span>
+                            </div>
+                            <div class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-black dark:bg-white" style="width: ${p}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 text-gray-500">
+                                <span>Recall</span>
+                                <span class="text-black dark:text-white font-mono">${r}%</span>
+                            </div>
+                            <div class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-black dark:bg-white" style="width: ${r}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 text-gray-500">
+                                <span>False Positive Rate</span>
+                                <span class="text-black dark:text-white font-mono">${fpr}%</span>
+                            </div>
+                            <div class="h-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-red-500" style="width: ${Math.max(5, fpr)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+    </script>
+</body>
+
+</html>

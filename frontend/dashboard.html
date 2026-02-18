@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Security Threat Analysis Dashboard — Sentinel AI</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#000000",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .dot-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 4px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-animate {
+            animation: countUp 0.8s ease forwards;
+        }
+
+        .risk-bar-animate {
+            animation: riskGrow 1s ease forwards;
+        }
+
+        @keyframes riskGrow {
+            from {
+                width: 0%;
+            }
+        }
+
+        .metric-bar-animate {
+            animation: metricGrow 1.2s ease forwards;
+        }
+
+        @keyframes metricGrow {
+            from {
+                width: 0%;
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            min-height: 60vh;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+    <!-- Navigation -->
+    <nav
+        class="border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-black dark:bg-white flex items-center justify-center">
+                <span class="material-icons-outlined text-white dark:text-black text-sm">security</span>
+            </div>
+            <span class="font-bold tracking-tight text-xl uppercase">Sentinel AI</span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a class="hover:opacity-60 transition-opacity" href="home.html">DASHBOARD</a>
+            <a class="hover:opacity-60 transition-opacity" href="home.html">LOG FILES</a>
+            <a class="hover:opacity-60 transition-opacity" href="#">THREAT INTELLIGENCE</a>
+            <a class="hover:opacity-60 transition-opacity" href="#">SETTINGS</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                onclick="document.documentElement.classList.toggle('dark')">
+                <span class="material-icons-outlined text-lg">dark_mode</span>
+            </button>
+            <button id="exportBtn"
+                class="bg-primary text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
+                EXPORT REPORT
+            </button>
+        </div>
+    </nav>
+
+    <!-- Empty State (shown when no data) -->
+    <div id="emptyState" class="empty-state flex flex-col items-center justify-center text-center px-8 hidden">
+        <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-8">
+            <span class="material-icons-outlined text-3xl text-slate-400">shield</span>
+        </div>
+        <h2 class="text-2xl font-bold mb-3">No Analysis Data Available</h2>
+        <p class="text-slate-500 mb-8 max-w-md">Upload network log files to run AI-powered threat detection and generate
+            your security analysis dashboard.</p>
+        <a href="home.html"
+            class="bg-primary text-white dark:bg-white dark:text-black px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-opacity">
+            GO TO UPLOAD
+        </a>
+    </div>
+
+    <!-- Dashboard Content (hidden by default, shown when data exists) -->
+    <div id="dashboardContent" class="hidden">
+        <!-- Header Stats -->
+        <header class="max-w-7xl mx-auto px-8 py-12">
+            <div class="mb-12">
+                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-2">
+                    Analysis Results • <span id="analysisDate"></span>
+                </p>
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight max-w-2xl">Security Threat Analysis Dashboard
+                </h1>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 border-y border-slate-200 dark:border-slate-800 py-10">
+                <!-- Total Logs Processed -->
+                <div class="space-y-1 fade-in" style="animation-delay: 0.1s">
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Total Logs Processed</p>
+                    <p class="text-4xl font-light" id="totalLogs">—</p>
+                    <div class="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                        <span class="material-icons-outlined text-sm">trending_up</span>
+                        <span id="logsSubtext">Analyzed just now</span>
+                    </div>
+                </div>
+                <!-- Suspicious Activities -->
+                <div class="space-y-1 fade-in" style="animation-delay: 0.3s">
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Suspicious Activities</p>
+                    <p class="text-4xl font-light" id="suspiciousCount">—</p>
+                    <div class="flex items-center gap-2 text-xs" id="suspiciousSubtext">
+                        <span class="material-icons-outlined text-sm text-red-500">error_outline</span>
+                        <span class="text-red-600 dark:text-red-400" id="criticalText">Calculating...</span>
+                    </div>
+                </div>
+                <!-- System Risk Level -->
+                <div class="space-y-1 fade-in" style="animation-delay: 0.5s">
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">System Risk Level</p>
+                    <p class="text-4xl font-light uppercase tracking-tighter" id="riskLevel">—</p>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-1 mt-4">
+                        <div class="bg-primary dark:bg-white h-1 risk-bar-animate" id="riskBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-8 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Threats Table -->
+            <div class="lg:col-span-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xl font-bold">Identified Threats</h2>
+                    <div class="flex gap-4">
+                        <span
+                            class="text-xs text-slate-500 flex items-center gap-1 cursor-pointer hover:text-black dark:hover:text-white transition-colors"
+                            id="filterBtn">
+                            <span class="material-icons-outlined text-sm">filter_list</span> Filter
+                        </span>
+                        <span
+                            class="text-xs text-slate-500 flex items-center gap-1 cursor-pointer hover:text-black dark:hover:text-white transition-colors"
+                            id="sortBtn">
+                            <span class="material-icons-outlined text-sm">sort</span> Sort
+                        </span>
+                    </div>
+                </div>
+
+                <!-- No threats message -->
+                <div id="noThreats"
+                    class="hidden py-16 text-center border border-dashed border-slate-200 dark:border-slate-800">
+                    <span class="material-icons-outlined text-4xl text-green-500 mb-4">verified_user</span>
+                    <p class="text-lg font-semibold text-green-700 dark:text-green-400">All Clear</p>
+                    <p class="text-sm text-slate-500 mt-2">No suspicious activities detected in the uploaded logs.</p>
+                </div>
+
+                <!-- Threats table -->
+                <div id="threatsTableContainer" class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800">
+                                <th class="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                    Timestamp</th>
+                                <th class="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Event
+                                    Type</th>
+                                <th class="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Source
+                                    IP</th>
+                                <th class="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                    Confidence</th>
+                                <th class="py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="threatsBody" class="text-sm"></tbody>
+                    </table>
+                </div>
+
+                <button id="loadMoreBtn"
+                    class="hidden w-full py-8 mt-4 text-[10px] font-bold tracking-[0.3em] uppercase border border-dashed border-slate-200 dark:border-slate-800 text-slate-500 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white transition-all">
+                    Load More Incident Data
+                </button>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="lg:col-span-4 space-y-12">
+                <!-- Detection Patterns -->
+                <div class="p-8 border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-xs font-bold tracking-widest uppercase mb-6">Detection Patterns</h3>
+                    <div class="dot-grid mb-8" id="dotGrid"></div>
+                    <div class="space-y-4">
+                        <p class="text-sm font-medium">Anomaly Density Map</p>
+                        <p class="text-xs text-slate-500 leading-relaxed" id="densityText">
+                            Data flow anomalies visualized. Darkened nodes represent high-confidence threat signatures
+                            detected by the ML model.
+                        </p>
+                        <div class="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-black dark:bg-white"></div>
+                                <span
+                                    class="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Anomaly</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                                <span
+                                    class="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Baseline</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ML Model Health -->
+                <div class="p-8 bg-black text-white dark:bg-white dark:text-black">
+                    <h3 class="text-xs font-bold tracking-widest uppercase mb-6 opacity-60">ML Model Health</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold uppercase mb-2">
+                                <span>Precision</span>
+                                <span id="precisionValue">—</span>
+                            </div>
+                            <div class="w-full bg-white/20 dark:bg-black/10 h-1">
+                                <div class="bg-white dark:bg-black h-1 metric-bar-animate" id="precisionBar"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold uppercase mb-2">
+                                <span>Recall Rate</span>
+                                <span id="recallValue">—</span>
+                            </div>
+                            <div class="w-full bg-white/20 dark:bg-black/10 h-1">
+                                <div class="bg-white dark:bg-black h-1 metric-bar-animate" id="recallBar"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold uppercase mb-2">
+                                <span>False Positive Rate</span>
+                                <span id="fprValue">—</span>
+                            </div>
+                            <div class="w-full bg-white/20 dark:bg-black/10 h-1">
+                                <div class="bg-white dark:bg-black h-1 metric-bar-animate" id="fprBar"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold tracking-widest uppercase text-slate-500">Quick Actions</h3>
+                    <a href="home.html"
+                        class="w-full flex items-center justify-between p-4 border border-slate-200 dark:border-slate-800 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                        UPLOAD NEW LOGS
+                        <span class="material-icons-outlined text-sm">upload_file</span>
+                    </a>
+                    <button onclick="exportJSON()"
+                        class="w-full flex items-center justify-between p-4 border border-slate-200 dark:border-slate-800 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                        GENERATE AUDIT LOGS
+                        <span class="material-icons-outlined text-sm">arrow_forward</span>
+                    </button>
+                    <button
+                        class="w-full flex items-center justify-between p-4 border border-slate-200 dark:border-slate-800 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors text-red-600 dark:text-red-400">
+                        ACTIVATE FULL LOCKDOWN
+                        <span class="material-icons-outlined text-sm">warning</span>
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-16">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div class="md:col-span-2 space-y-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-black dark:bg-white flex items-center justify-center">
+                            <span class="material-icons-outlined text-white dark:text-black text-[10px]">security</span>
+                        </div>
+                        <span class="font-bold tracking-tight text-lg uppercase">Sentinel AI</span>
+                    </div>
+                    <p class="text-sm text-slate-500 max-w-sm">
+                        Advanced machine learning platform for enterprise-grade network security and threat detection.
+                        Protecting tomorrow's infrastructure today.
+                    </p>
+                    <div class="flex gap-4">
+                        <a class="w-8 h-8 flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:border-black dark:hover:border-white transition-colors"
+                            href="#">
+                            <span class="material-icons-outlined text-sm">share</span>
+                        </a>
+                        <a class="w-8 h-8 flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:border-black dark:hover:border-white transition-colors"
+                            href="#">
+                            <span class="material-icons-outlined text-sm">info</span>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Platform</h4>
+                    <ul class="space-y-4 text-xs font-medium">
+                        <li><a class="hover:opacity-60 transition-opacity" href="home.html">Overview</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Security Metrics</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">API Docs</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Changelog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Support</h4>
+                    <ul class="space-y-4 text-xs font-medium">
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Help Center</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Contact Security Team</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Privacy Policy</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div
+                class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">© 2025 Sentinel AI Intelligence. All
+                    rights reserved.</p>
+                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <span>System Status: Operational</span>
+                    <span>Version 4.2.0-stable</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== Data binding =====
+        let analysisData = null;
+        let allThreats = [];
+        let visibleThreats = 10;
+
+        function init() {
+            const raw = sessionStorage.getItem('analysisResult');
+            if (!raw) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('dashboardContent').classList.add('hidden');
+                return;
+            }
+
+            try {
+                analysisData = JSON.parse(raw);
+            } catch {
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('dashboardContent').classList.remove('hidden');
+
+            populateDashboard(analysisData);
+        }
+
+        function populateDashboard(data) {
+            // Date
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
+            document.getElementById('analysisDate').textContent = dateStr;
+
+            // Stats
+            document.getElementById('totalLogs').textContent = Number(data.total_logs_processed).toLocaleString();
+            document.getElementById('suspiciousCount').textContent = Number(data.suspicious_activities).toLocaleString();
+
+            const criticalCount = data.critical_threats || 0;
+            const criticalText = document.getElementById('criticalText');
+            if (criticalCount > 0) {
+                criticalText.textContent = `${criticalCount} critical threat${criticalCount > 1 ? 's' : ''} require${criticalCount === 1 ? 's' : ''} attention`;
+            } else if (data.suspicious_activities > 0) {
+                criticalText.textContent = `${data.suspicious_activities} suspicious events found`;
+            } else {
+                criticalText.textContent = 'No threats detected';
+                criticalText.classList.remove('text-red-600', 'dark:text-red-400');
+                criticalText.classList.add('text-green-600', 'dark:text-green-400');
+                document.querySelector('#suspiciousSubtext .material-icons-outlined').textContent = 'check_circle';
+                document.querySelector('#suspiciousSubtext .material-icons-outlined').classList.remove('text-red-500');
+                document.querySelector('#suspiciousSubtext .material-icons-outlined').classList.add('text-green-500');
+            }
+
+            // Risk level
+            const risk = data.system_risk_level || 'UNKNOWN';
+            document.getElementById('riskLevel').textContent = risk;
+            const riskMap = { LOW: 20, GUARDED: 40, ELEVATED: 65, CRITICAL: 95 };
+            const riskPct = riskMap[risk] || 50;
+            setTimeout(() => {
+                document.getElementById('riskBar').style.width = riskPct + '%';
+            }, 200);
+
+            // File name subtitle
+            const fileName = sessionStorage.getItem('analysisFile') || 'uploaded file';
+            document.getElementById('logsSubtext').textContent = `From ${fileName}`;
+
+            // Threats table
+            allThreats = data.identified_threats || [];
+            renderThreats();
+
+            // ML Model Health
+            const ml = data.ml_model_health || {};
+            const precision = ml.precision || 0;
+            const recall = ml.recall || 0;
+            const fpr = ml.false_positive_rate || 0;
+
+            document.getElementById('precisionValue').textContent = precision + '%';
+            document.getElementById('recallValue').textContent = recall + '%';
+            document.getElementById('fprValue').textContent = fpr + '%';
+
+            setTimeout(() => {
+                document.getElementById('precisionBar').style.width = precision + '%';
+                document.getElementById('recallBar').style.width = recall + '%';
+                // FPR is usually small, scale it for visibility
+                document.getElementById('fprBar').style.width = Math.max(2, fpr) + '%';
+            }, 400);
+
+            // Detection patterns dot grid
+            generateDotGrid(data.suspicious_activities, data.total_logs_processed);
+
+            // Update density text
+            const kind = data.kind || 'unknown';
+            document.getElementById('densityText').textContent =
+                `Analysis of ${kind.toUpperCase()} log data. Darkened nodes represent anomalies detected in ${data.suspicious_activities} out of ${Number(data.total_logs_processed).toLocaleString()} events.`;
+        }
+
+        function renderThreats() {
+            const tbody = document.getElementById('threatsBody');
+            const noThreats = document.getElementById('noThreats');
+            const tableContainer = document.getElementById('threatsTableContainer');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+            if (allThreats.length === 0) {
+                noThreats.classList.remove('hidden');
+                tableContainer.classList.add('hidden');
+                loadMoreBtn.classList.add('hidden');
+                return;
+            }
+
+            noThreats.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+
+            const threatsToShow = allThreats.slice(0, visibleThreats);
+            tbody.innerHTML = threatsToShow.map((t, i) => {
+                const conf = t.confidence || 0;
+                const isHigh = conf >= 90;
+                const isMed = conf >= 70 && conf < 90;
+                const confClass = isHigh
+                    ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400'
+                    : isMed
+                        ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+
+                const altRow = i % 2 === 1
+                    ? 'bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-900/50';
+
+                // Format timestamp
+                let ts = t.timestamp || '';
+                try {
+                    const d = new Date(ts);
+                    if (!isNaN(d.getTime())) {
+                        ts = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }) + ' ' +
+                            d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                    }
+                } catch { }
+
+                return `
+        <tr class="border-b border-slate-100 dark:border-slate-900 group ${altRow} transition-colors slide-up" style="animation-delay: ${i * 0.05}s">
+            <td class="py-6 font-mono opacity-60">${ts}</td>
+            <td class="py-6 font-bold">${t.event_type || 'Unknown'}</td>
+            <td class="py-6 font-mono">${t.source_ip || '—'}</td>
+            <td class="py-6">
+                <span class="${confClass} px-2 py-1 text-[10px] font-bold">${conf}%</span>
+            </td>
+            <td class="py-6 text-right">
+                <span class="material-icons-outlined text-lg opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">chevron_right</span>
+            </td>
+        </tr>`;
+            }).join('');
+
+            if (allThreats.length > visibleThreats) {
+                loadMoreBtn.classList.remove('hidden');
+            } else {
+                loadMoreBtn.classList.add('hidden');
+            }
+        }
+
+        function generateDotGrid(suspicious, total) {
+            const container = document.getElementById('dotGrid');
+            container.innerHTML = '';
+            const ratio = total > 0 ? suspicious / total : 0;
+            // Scale: make anomalies more visible
+            const anomalyRate = Math.min(0.5, Math.max(0.05, ratio * 5));
+            for (let i = 0; i < 200; i++) {
+                const dot = document.createElement('div');
+                const isAnomaly = Math.random() < anomalyRate;
+                dot.className = 'dot ' + (isAnomaly ? 'bg-black dark:bg-white scale-150' : 'bg-slate-200 dark:bg-slate-800');
+                container.appendChild(dot);
+            }
+        }
+
+        // Load more
+        document.getElementById('loadMoreBtn').addEventListener('click', () => {
+            visibleThreats += 10;
+            renderThreats();
+        });
+
+        // Sort toggle
+        let sortAsc = false;
+        document.getElementById('sortBtn').addEventListener('click', () => {
+            sortAsc = !sortAsc;
+            allThreats.sort((a, b) => sortAsc
+                ? (a.confidence || 0) - (b.confidence || 0)
+                : (b.confidence || 0) - (a.confidence || 0)
+            );
+            renderThreats();
+        });
+
+        // Filter (toggle: show only high confidence)
+        let filterHigh = false;
+        const originalThreats = [];
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            filterHigh = !filterHigh;
+            if (filterHigh) {
+                if (originalThreats.length === 0) originalThreats.push(...allThreats);
+                allThreats = originalThreats.filter(t => (t.confidence || 0) >= 80);
+            } else {
+                allThreats = [...originalThreats];
+            }
+            visibleThreats = 10;
+            renderThreats();
+        });
+
+        // Export JSON
+        function exportJSON() {
+            if (!analysisData) return;
+            const blob = new Blob([JSON.stringify(analysisData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sentinel_analysis_report.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', exportJSON);
+
+        // Initialize
+        init();
+    </script>
+
+</body>
+
+</html>

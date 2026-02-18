@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Nexus AI — Network Anomaly Detection</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#000000",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .upload-zone {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .upload-zone.drag-over {
+            border-color: #000 !important;
+            background: rgba(0, 0, 0, 0.02) !important;
+            transform: scale(1.005);
+        }
+
+        .dark .upload-zone.drag-over {
+            border-color: #fff !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        .process-btn {
+            transition: all 0.3s ease;
+        }
+
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .process-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .file-item {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.9);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 1;
+            }
+        }
+
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+
+        /* Processing overlay */
+        .processing-overlay {
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav
+        class="border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                <span class="material-icons-outlined text-white dark:text-black text-sm">hub</span>
+            </div>
+            <span class="font-bold tracking-tight text-xl uppercase">Nexus AI</span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a class="hover:opacity-60 transition-opacity" href="home.html">Analyze</a>
+            <a class="hover:opacity-60 transition-opacity" href="dashboard.html">Dashboard</a>
+            <a class="hover:opacity-60 transition-opacity" href="train.html">Train Model</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                onclick="document.documentElement.classList.toggle('dark')">
+                <span class="material-icons-outlined text-lg">dark_mode</span>
+            </button>
+            <button
+                class="bg-primary text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
+                JOIN OUR TEAM →
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <!-- Hero Section -->
+        <section class="max-w-4xl mx-auto px-8 pt-20 pb-6 text-center">
+            <p class="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase mb-6">LOG ANALYSIS PLATFORM</p>
+            <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-6">Network Anomaly Detection</h1>
+            <p class="text-slate-500 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Leverage advanced AI-powered predictive models to identify suspicious behavior and security
+                vulnerabilities across your network log files in real-time.
+            </p>
+        </section>
+
+        <!-- Upload Zone -->
+        <section class="max-w-3xl mx-auto px-8 py-10">
+            <div id="uploadZone"
+                class="upload-zone border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg px-12 py-16 text-center cursor-pointer hover:border-slate-400 dark:hover:border-slate-500">
+                <div class="flex justify-center mb-6">
+                    <div class="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                        <span class="material-icons-outlined text-2xl text-slate-400">upload_file</span>
+                    </div>
+                </div>
+                <p class="text-lg font-semibold mb-2">Drag and drop network log files</p>
+                <p class="text-sm text-slate-400 mb-6">Support for CSV, LOG, and TXT files. Max file size: 500MB.</p>
+                <button id="browseBtn"
+                    class="bg-primary text-white dark:bg-white dark:text-black px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-opacity">
+                    BROWSE FILES
+                </button>
+                <input type="file" id="fileInput" accept=".csv" class="hidden" multiple />
+            </div>
+
+            <!-- File List -->
+            <div id="fileList" class="mt-6 space-y-3 hidden"></div>
+
+            <!-- Process Button -->
+            <div class="text-center mt-8">
+                <button id="processBtn"
+                    class="process-btn bg-primary text-white dark:bg-white dark:text-black px-12 py-4 text-sm font-bold uppercase tracking-[0.2em] disabled:opacity-40"
+                    disabled>
+                    PROCESS LOGS
+                </button>
+            </div>
+
+            <!-- Features -->
+            <div class="flex justify-center gap-8 mt-6 text-xs text-slate-400">
+                <span class="flex items-center gap-2">
+                    <span class="material-icons-outlined text-sm">lock</span>
+                    Encrypted Processing
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="material-icons-outlined text-sm">auto_awesome</span>
+                    AI-Driven Results
+                </span>
+            </div>
+        </section>
+
+        <!-- Processing Overlay (hidden by default) -->
+        <div id="processingOverlay"
+            class="hidden fixed inset-0 bg-white/80 dark:bg-black/80 z-[100] flex items-center justify-center processing-overlay">
+            <div class="text-center p-12 max-w-md">
+                <div class="mb-8">
+                    <svg class="loading-spinner mx-auto w-16 h-16" viewBox="0 0 50 50">
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="3"
+                            stroke-linecap="round" stroke-dasharray="80, 200" stroke-dashoffset="0"
+                            class="text-slate-300 dark:text-slate-600" />
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="3"
+                            stroke-linecap="round" stroke-dasharray="80, 200" stroke-dashoffset="-15"
+                            class="text-black dark:text-white" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Analyzing Log Files</h3>
+                <p class="text-sm text-slate-500 mb-6" id="processingStatus">Uploading files to Sentinel AI engine...
+                </p>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="progressBar" class="progress-bar bg-black dark:bg-white h-1.5 rounded-full"
+                        style="width: 0%"></div>
+                </div>
+                <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-4" id="progressText">0%
+                    COMPLETE</p>
+            </div>
+        </div>
+
+        <!-- Error Toast -->
+        <div id="errorToast"
+            class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm font-medium">
+            <span class="material-icons-outlined text-lg">error</span>
+            <span id="errorMessage">An error occurred</span>
+            <button onclick="document.getElementById('errorToast').classList.add('hidden')"
+                class="ml-4 hover:opacity-70">
+                <span class="material-icons-outlined text-sm">close</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Newsletter Section -->
+    <section class="bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800 mt-20">
+        <div class="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+                <p class="text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase mb-4">NEWSLETTER</p>
+                <h2 class="text-2xl md:text-3xl font-bold tracking-tight mb-3">Subscribe for cutting-edge AI updates
+                </h2>
+                <p class="text-sm text-slate-500 leading-relaxed">Stay informed about the latest trends in network
+                    security and AI-driven predictive modeling. No spam, only monthly insights.</p>
+            </div>
+            <div>
+                <div class="flex gap-3">
+                    <input type="email" placeholder="Enter your email"
+                        class="flex-1 bg-slate-200 dark:bg-slate-800 border-0 px-5 py-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-black dark:focus:ring-white" />
+                    <button
+                        class="bg-primary text-white dark:bg-white dark:text-black px-6 py-3 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity whitespace-nowrap">
+                        SUBSCRIBE
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400 mt-3 flex items-center gap-1">
+                    <span class="material-icons-outlined text-sm">check</span>
+                    ONLY ONE EMAIL PER MONTH — NO SPAM!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-background-dark py-16">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                            <span class="material-icons-outlined text-white dark:text-black text-[10px]">hub</span>
+                        </div>
+                        <span class="font-bold tracking-tight text-lg uppercase">Nexus AI</span>
+                    </div>
+                    <p class="text-sm text-slate-500 max-w-sm leading-relaxed">
+                        Unlock tomorrow's most important AI trends. Our platform provides enterprise-grade security
+                        analysis through advanced neural networks.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Navigation</h4>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Home</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">About</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6">Platform</h4>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Careers</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">Log Blog</a></li>
+                        <li><a class="hover:opacity-60 transition-opacity" href="#">System Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div
+                class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons-outlined text-sm">email</span>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">EMAIL ADDRESS</p>
+                        <p class="font-medium text-slate-700 dark:text-slate-300">support@nexusai.com</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-icons-outlined text-sm">chat</span>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">LIVE CHAT WITH US</p>
+                        <p class="font-medium text-slate-700 dark:text-slate-300">Chat with us</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-icons-outlined text-sm">help</span>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">SUPPORT</p>
+                        <p class="font-medium text-slate-700 dark:text-slate-300">help.nexusai.com</p>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">© 2024 Nexus AI Platform | All Rights
+                    Reserved</p>
+                <div class="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <a href="#" class="hover:opacity-60">Privacy Policy</a>
+                    <a href="#" class="hover:opacity-60">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+
+        // DOM elements
+        const uploadZone = document.getElementById('uploadZone');
+        const browseBtn = document.getElementById('browseBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const processingOverlay = document.getElementById('processingOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const processingStatus = document.getElementById('processingStatus');
+        const errorToast = document.getElementById('errorToast');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let selectedFiles = [];
+
+        // Browse files
+        browseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            handleFiles(Array.from(e.dataTransfer.files));
+        });
+
+        function handleFiles(files) {
+            const csvFiles = files.filter(f => f.name.toLowerCase().endsWith('.csv'));
+            if (csvFiles.length === 0) {
+                showError('Please upload CSV files only. Other formats are not yet supported.');
+                return;
+            }
+            selectedFiles = csvFiles;
+            renderFileList();
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function renderFileList() {
+            if (selectedFiles.length === 0) {
+                fileList.classList.add('hidden');
+                return;
+            }
+            fileList.classList.remove('hidden');
+            fileList.innerHTML = selectedFiles.map((f, i) => `
+        <div class="file-item flex items-center justify-between p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <span class="material-icons-outlined text-lg text-slate-500">description</span>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold">${f.name}</p>
+                    <p class="text-xs text-slate-400">${formatFileSize(f.size)}</p>
+                </div>
+            </div>
+            <button onclick="removeFile(${i})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors">
+                <span class="material-icons-outlined text-sm text-slate-400">close</span>
+            </button>
+        </div>
+    `).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorToast.classList.remove('hidden');
+            setTimeout(() => errorToast.classList.add('hidden'), 6000);
+        }
+
+        // Process logs
+        processBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            // Show processing overlay
+            processingOverlay.classList.remove('hidden');
+            processBtn.disabled = true;
+
+            // Simulate initial progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (progress < 60) {
+                    progress += Math.random() * 8;
+                    updateProgress(Math.min(progress, 60));
+                }
+            }, 300);
+
+            try {
+                // Use only the first file for now
+                const file = selectedFiles[0];
+                processingStatus.textContent = `Uploading ${file.name} to Sentinel AI engine...`;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                clearInterval(progressInterval);
+                updateProgress(65);
+                processingStatus.textContent = 'Running ML anomaly detection...';
+
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                updateProgress(85);
+                processingStatus.textContent = 'Processing threat analysis results...';
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.detail || 'Prediction failed');
+                }
+
+                const result = await response.json();
+                updateProgress(100);
+                processingStatus.textContent = 'Analysis complete! Redirecting to dashboard...';
+
+                // Store result in sessionStorage and redirect
+                sessionStorage.setItem('analysisResult', JSON.stringify(result));
+                sessionStorage.setItem('analysisFile', file.name);
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 800);
+
+            } catch (err) {
+                clearInterval(progressInterval);
+                processingOverlay.classList.add('hidden');
+                processBtn.disabled = false;
+                showError(err.message || 'Failed to process log files. Ensure the server is running.');
+            }
+        });
+
+        function updateProgress(pct) {
+            const p = Math.min(100, Math.round(pct));
+            progressBar.style.width = p + '%';
+            progressText.textContent = p + '% COMPLETE';
+        }
+
+        // Check API health on load
+        (async () => {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const data = await res.json();
+                if (!data.model_loaded) {
+                    showError('ML Model not loaded. Run train_models.py first.');
+                }
+            } catch {
+                // Server might not be running yet, that's okay
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

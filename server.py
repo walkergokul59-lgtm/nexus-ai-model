@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+import io
+import pandas as pd
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import List
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+from contextlib import asynccontextmanager
+import shutil
+import os
+
+from modeling import ModelBundle, predict_dashboard, train_one
+
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "model_bundle.joblib")
+
+# Global variable to hold the model
+bundle: ModelBundle | None = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load model at startup
+    global bundle
+    try:
+        bundle = ModelBundle.load(MODEL_PATH)
+        print(f"Model loaded successfully from {MODEL_PATH}")
+    except Exception as e:
+        bundle = None
+        print(f"[WARN] Could not load {MODEL_PATH}: {e}")
+    yield
+    # Clean up if needed (nothing to do here)
+
+app = FastAPI(title="Nexus/Sentinel Log Anomaly API", lifespan=lifespan)
+
+# allow your frontend to call this
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # tighten in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/app/home.html")
+
+@app.get("/health")
+def health():
+    return {"ok": True, "model_loaded": bundle is not None}
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    global bundle
+    if bundle is None:
+        raise HTTPException(status_code=500, detail="Model not loaded. Train first and ensure model_bundle.joblib exists.")
+
+    # For now: expect CSV. (You can add LOG/TXT parsing later.)
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Please upload a .csv file for now.")
+
+    content = await file.read()
+    try:
+        df = pd.read_csv(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not read CSV: {e}")
+
+    try:
+        result = predict_dashboard(bundle, df, top_k=50)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return result
+
+    return result
+
+# Mount frontend static files AFTER API routes
+app.mount("/app", StaticFiles(directory="frontend", html=True), name="frontend")
+
+
+@app.post("/train")
+async def train_model(
+    auth_file: List[UploadFile] = File(None),
+    netflow_file: List[UploadFile] = File(None),
+    dns_file: List[UploadFile] = File(None),
+    http_file: List[UploadFile] = File(None)
+):
+    global bundle
+    if bundle is None:
+        raise HTTPException(status_code=500, detail="Model bundle not loaded. Please ensure initial model exists.")
+
+    files_map = {
+        "auth": auth_file,
+        "netflow": netflow_file,
+        "dns": dns_file,
+        "http": http_file,
+    }
+
+    # Create training directory if not exists
+    train_dir = os.path.join(BASE_DIR, "training_data")
+    os.makedirs(train_dir, exist_ok=True)
+
+    updated_infos = {}
+    
+    # We iterate over uploaded files
+    for kind, file_list in files_map.items():
+        if not file_list:
+            continue
+            
+        print(f"Processing {len(file_list)} files for {kind}...")
+        dfs = []
+        for i, f in enumerate(file_list):
+            try:
+                # Save temp file
+                file_path = os.path.join(train_dir, f"{kind}_train_{i}.csv")
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(f.file, buffer)
+                
+                # Read into DF
+                df_part = pd.read_csv(file_path)
+                dfs.append(df_part)
+            except Exception as e:
+                print(f"Error processing file {f.filename}: {e}")
+                continue
+        
+        if not dfs:
+            continue
+
+        # Train logic on combined DF
+        print(f"Retraining {kind} model on combined data...")
+        try:
+            combined_df = pd.concat(dfs, ignore_index=True)
+            
+            # Re-train just this kind
+            clf, hasher, info = train_one(kind, combined_df)
+            
+            # Update bundle
+            bundle.models[kind] = clf
+            bundle.hashers[kind] = hasher
+            bundle.infos[kind] = info
+            
+            updated_infos[kind] = {
+                "precision": info.precision,
+                "recall": info.recall,
+                "false_positive_rate": info.false_positive_rate
+            }
+        except Exception as e:
+            print(f"Error training {kind}: {e}")
+            # raising HTTP error would abort other models, so maybe we log and continue?
+            # But for user feedback, let's include error in updated_infos or raise
+            raise HTTPException(status_code=500, detail=f"Error training {kind}: {str(e)}")
+
+    # Save updated bundle
+    try:
+        bundle.save(MODEL_PATH)
+        print("Updated model bundle saved.")
+    except Exception as e:
+        print(f"Error saving bundle: {e}")
+    
+    return updated_infos
