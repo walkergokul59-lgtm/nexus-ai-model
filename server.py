@@ -111,13 +111,8 @@ async def train_model(
         "http": http_file,
     }
 
-    # Create training directory if not exists
-    train_dir = os.path.join(BASE_DIR, "training_data")
-    os.makedirs(train_dir, exist_ok=True)
-
     updated_infos = {}
     
-    # We iterate over uploaded files
     for kind, file_list in files_map.items():
         if not file_list:
             continue
@@ -126,13 +121,9 @@ async def train_model(
         dfs = []
         for i, f in enumerate(file_list):
             try:
-                # Save temp file
-                file_path = os.path.join(train_dir, f"{kind}_train_{i}.csv")
-                with open(file_path, "wb") as buffer:
-                    shutil.copyfileobj(f.file, buffer)
-                
-                # Read into DF
-                df_part = pd.read_csv(file_path)
+                # Read CSV directly from memory (no disk writes needed)
+                content = await f.read()
+                df_part = pd.read_csv(io.BytesIO(content))
                 dfs.append(df_part)
             except Exception as e:
                 print(f"Error processing file {f.filename}: {e}")
@@ -141,15 +132,12 @@ async def train_model(
         if not dfs:
             continue
 
-        # Train logic on combined DF
         print(f"Retraining {kind} model on combined data...")
         try:
             combined_df = pd.concat(dfs, ignore_index=True)
             
-            # Re-train just this kind
             clf, hasher, info = train_one(kind, combined_df)
             
-            # Update bundle
             bundle.models[kind] = clf
             bundle.hashers[kind] = hasher
             bundle.infos[kind] = info
@@ -161,14 +149,19 @@ async def train_model(
             }
         except Exception as e:
             print(f"Error training {kind}: {e}")
-            # raising HTTP error would abort other models, so maybe we log and continue?
-            # But for user feedback, let's include error in updated_infos or raise
             raise HTTPException(status_code=500, detail=f"Error training {kind}: {str(e)}")
 
-    # Save updated bundle
+    # Save updated bundle to /tmp (writable on Vercel) or BASE_DIR locally
     try:
-        bundle.save(MODEL_PATH)
-        print("Updated model bundle saved.")
+        import tempfile
+        save_path = os.path.join(tempfile.gettempdir(), "model_bundle.joblib")
+        bundle.save(save_path)
+        # Also try the original path (works locally, fails silently on Vercel)
+        try:
+            bundle.save(MODEL_PATH)
+        except Exception:
+            pass
+        print(f"Updated model bundle saved to {save_path}")
     except Exception as e:
         print(f"Error saving bundle: {e}")
     
