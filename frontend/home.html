@@ -259,7 +259,7 @@
                     </svg>
                 </div>
                 <h3 class="text-xl font-bold mb-2">Analyzing Log Files</h3>
-                <p class="text-sm text-slate-500 mb-6" id="processingStatus">Uploading files to Sentinel AI engine...
+                <p class="text-sm text-slate-500 mb-6" id="processingStatus">Uploading files to Nexus AI engine...
                 </p>
                 <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div id="progressBar" class="progress-bar bg-black dark:bg-white h-1.5 rounded-full"
@@ -515,7 +515,7 @@
             try {
                 // Use only the first file for now
                 const file = selectedFiles[0];
-                processingStatus.textContent = `Uploading ${file.name} to Sentinel AI engine...`;
+                processingStatus.textContent = `Uploading ${file.name} to Nexus AI engine...`;
 
                 const formData = new FormData();
                 formData.append('file', file);

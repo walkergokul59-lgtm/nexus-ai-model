@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     yield
     # Clean up if needed (nothing to do here)
 
-app = FastAPI(title="Nexus/Sentinel Log Anomaly API", lifespan=lifespan)
+app = FastAPI(title="Nexus AI Log Anomaly API", lifespan=lifespan)
 
 # allow your frontend to call this
 app.add_middleware(

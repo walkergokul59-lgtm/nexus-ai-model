@@ -47,7 +47,7 @@ To run the web application on your machine:
 2.  **Access the Dashboard**:
     Open `http://127.0.0.1:8000` in your browser.
     -   Upload personal or synthetic CSV logs (e.g., `synthetic_auth_logs.csv`).
-    -   View the Sentinel AI Security Dashboard.
+    -   View the Nexus AI Security Dashboard.
 
 ### Hosting on Vercel
 
