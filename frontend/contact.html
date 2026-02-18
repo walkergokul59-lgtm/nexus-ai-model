@@ -112,7 +112,7 @@
 
     <!-- Navigation -->
     <nav
-        class="border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
+        class="border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
                 <span class="material-icons-outlined text-white dark:text-black text-sm">hub</span>
@@ -130,14 +130,40 @@
                 onclick="document.documentElement.classList.toggle('dark')">
                 <span class="material-icons-outlined text-lg">dark_mode</span>
             </button>
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="material-icons-outlined">menu</span>
+            </button>
         </div>
     </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="hidden md:hidden fixed inset-0 z-[100] bg-white dark:bg-background-dark p-6 transition-transform duration-300">
+        <div class="flex justify-between items-center mb-10">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                    <span class="material-icons-outlined text-white dark:text-black text-sm">hub</span>
+                </div>
+                <span class="font-bold tracking-tight text-xl uppercase">Nexus AI</span>
+            </div>
+            <button id="close-menu-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="material-icons-outlined">close</span>
+            </button>
+        </div>
+        <nav class="flex flex-col gap-6 text-lg font-medium">
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="home.html">Analyze</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="dashboard.html">Dashboard</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="train.html">Train Model</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800 font-bold"
+                href="contact.html">Contact</a>
+        </nav>
+    </div>
 
     <!-- Main Content -->
     <main class="flex-1">
 
         <!-- Hero Section -->
-        <section class="max-w-5xl mx-auto px-8 pt-20 pb-8">
+        <section class="max-w-5xl mx-auto px-4 md:px-8 pt-20 pb-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <!-- Left: Info -->
                 <div class="animate-in" style="animation-delay: 0.1s">
@@ -353,6 +379,19 @@
         </div>
     </footer>
 
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const closeBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        mobileBtn?.addEventListener('click', toggleMenu);
+        closeBtn?.addEventListener('click', toggleMenu);
+    </script>
 </body>
 
 </html>

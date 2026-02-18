@@ -106,8 +106,8 @@
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
     <!-- Navigation -->
-    <nav
-        class="border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
+    <nav <nav
+        class="border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-black dark:bg-white flex items-center justify-center">
                 <span class="material-icons-outlined text-white dark:text-black text-sm">security</span>
@@ -126,11 +126,38 @@
                 <span class="material-icons-outlined text-lg">dark_mode</span>
             </button>
             <button id="exportBtn"
-                class="bg-primary text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
+                class="hidden md:block bg-primary text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">
                 EXPORT REPORT
+            </button>
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="material-icons-outlined">menu</span>
             </button>
         </div>
     </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="hidden md:hidden fixed inset-0 z-[100] bg-white dark:bg-background-dark p-6 transition-transform duration-300">
+        <div class="flex justify-between items-center mb-10">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-black dark:bg-white flex items-center justify-center">
+                    <span class="material-icons-outlined text-white dark:text-black text-sm">security</span>
+                </div>
+                <span class="font-bold tracking-tight text-xl uppercase">Sentinel AI</span>
+            </div>
+            <button id="close-menu-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="material-icons-outlined">close</span>
+            </button>
+        </div>
+        <nav class="flex flex-col gap-6 text-lg font-medium">
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="home.html">Dashboard</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="home.html">Log Files</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="#">Threat Intelligence</a>
+            <a class="block py-2 border-b border-slate-100 dark:border-slate-800" href="contact.html">Contact</a>
+            <button onclick="document.getElementById('exportBtn').click()"
+                class="text-left block py-2 text-primary dark:text-white font-bold">Export Report</button>
+        </nav>
+    </div>
 
     <!-- Empty State (shown when no data) -->
     <div id="emptyState" class="empty-state flex flex-col items-center justify-center text-center px-8 hidden">
@@ -191,7 +218,7 @@
         <main class="max-w-7xl mx-auto px-8 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
             <!-- Threats Table -->
             <div class="lg:col-span-8">
-                <div class="flex items-center justify-between mb-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 class="text-xl font-bold">Identified Threats</h2>
                     <div class="flex gap-4">
                         <span
@@ -606,6 +633,17 @@
 
         // Initialize
         init();
+        // Mobile Menu Toggle
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const closeBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        mobileBtn?.addEventListener('click', toggleMenu);
+        closeBtn?.addEventListener('click', toggleMenu);
     </script>
 
 </body>
