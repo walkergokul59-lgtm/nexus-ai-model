@@ -51,7 +51,18 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "model_loaded": bundle is not None}
+    files = []
+    try:
+        files = os.listdir(BASE_DIR)
+    except Exception as e:
+        files = [str(e)]
+    return {
+        "ok": True, 
+        "model_loaded": bundle is not None,
+        "cwd": os.getcwd(),
+        "base_dir": BASE_DIR,
+        "files_in_base_dir": files
+    }
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
