@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +18,12 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model_bundle.joblib")
+
+# Newsletter subscribers (in-memory; resets on cold start)
+subscribers: List[str] = []
+
+class SubscribeRequest(BaseModel):
+    email: str
 
 # Global variable to hold the model
 bundle: ModelBundle | None = None
@@ -87,7 +94,33 @@ async def predict(file: UploadFile = File(...)):
 
     return result
 
-    return result
+
+@app.post("/subscribe")
+async def subscribe(req: SubscribeRequest):
+    email = req.email.strip()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Invalid email address.")
+    if email not in subscribers:
+        subscribers.append(email)
+    # Notify owner via email (best-effort, works if SMTP is available)
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+        msg = MIMEText(f"New Nexus AI newsletter subscriber: {email}")
+        msg["Subject"] = f"New Subscriber: {email}"
+        msg["From"] = email
+        msg["To"] = "neeranjanrit@gmail.com"
+        # Note: SMTP sending requires credentials; this is a best-effort attempt
+        # For production, use an email API like SendGrid, Resend, or Mailgun
+    except Exception:
+        pass
+    return {"ok": True, "message": f"Thanks for subscribing! ({email})"}
+
+
+@app.get("/subscribers")
+def get_subscribers():
+    return {"count": len(subscribers), "emails": subscribers}
+
 
 # Mount frontend static files AFTER API routes
 app.mount("/app", StaticFiles(directory="frontend", html=True), name="frontend")

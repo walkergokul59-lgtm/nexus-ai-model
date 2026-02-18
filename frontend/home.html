@@ -149,6 +149,7 @@
             <a class="hover:opacity-60 transition-opacity" href="home.html">Analyze</a>
             <a class="hover:opacity-60 transition-opacity" href="dashboard.html">Dashboard</a>
             <a class="hover:opacity-60 transition-opacity" href="train.html">Train Model</a>
+            <a class="hover:opacity-60 transition-opacity" href="contact.html">Contact</a>
         </div>
         <div class="flex items-center gap-4">
             <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
@@ -267,9 +268,9 @@
             </div>
             <div>
                 <div class="flex gap-3">
-                    <input type="email" placeholder="Enter your email"
+                    <input id="newsletterEmail" type="email" placeholder="Enter your email"
                         class="flex-1 bg-slate-200 dark:bg-slate-800 border-0 px-5 py-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-black dark:focus:ring-white" />
-                    <button
+                    <button id="newsletterBtn"
                         class="bg-primary text-white dark:bg-white dark:text-black px-6 py-3 text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity whitespace-nowrap">
                         SUBSCRIBE
                     </button>
@@ -536,6 +537,32 @@
                 // Server might not be running yet, that's okay
             }
         })();
+
+        // Newsletter subscription
+        document.getElementById('newsletterBtn').addEventListener('click', async () => {
+            const emailInput = document.getElementById('newsletterEmail');
+            const email = emailInput.value.trim();
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('✅ ' + data.message);
+                    emailInput.value = '';
+                } else {
+                    alert('Error: ' + (data.detail || 'Subscription failed'));
+                }
+            } catch (err) {
+                alert('Failed to subscribe: ' + err.message);
+            }
+        });
     </script>
 
 </body>

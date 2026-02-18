@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Contact — Neeranjan Shankar | Full Stack Developer & AI Expert</title>
+    <meta name="description"
+        content="Get in touch with Neeranjan Shankar — Full Stack Developer specializing in AI-powered solutions and custom website development." />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#000000",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "4px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .dark .card-hover:hover {
+            box-shadow: 0 20px 40px rgba(255, 255, 255, 0.04);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #000 0%, #444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dark .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .link-arrow {
+            transition: transform 0.2s ease;
+        }
+
+        .group:hover .link-arrow {
+            transform: translateX(4px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .pulse-dot {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav
+        class="border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center bg-white dark:bg-background-dark sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                <span class="material-icons-outlined text-white dark:text-black text-sm">hub</span>
+            </div>
+            <span class="font-bold tracking-tight text-xl uppercase">Nexus AI</span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a class="hover:opacity-60 transition-opacity" href="home.html">Analyze</a>
+            <a class="hover:opacity-60 transition-opacity" href="dashboard.html">Dashboard</a>
+            <a class="hover:opacity-60 transition-opacity" href="train.html">Train Model</a>
+            <a class="border-b-2 border-black dark:border-white pb-0.5" href="contact.html">Contact</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                onclick="document.documentElement.classList.toggle('dark')">
+                <span class="material-icons-outlined text-lg">dark_mode</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+
+        <!-- Hero Section -->
+        <section class="max-w-5xl mx-auto px-8 pt-20 pb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Left: Info -->
+                <div class="animate-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></div>
+                        <span class="text-[10px] font-bold tracking-[0.3em] text-slate-500 uppercase">Available for
+                            projects</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 gradient-text">Neeranjan Shankar</h1>
+                    <p class="text-lg text-slate-500 dark:text-slate-400 mb-2 font-medium">Full Stack Developer</p>
+                    <p class="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-md mb-8">
+                        Specializing in AI-powered applications, custom web development, and scalable cloud solutions.
+                        Building intelligent software that transforms businesses.
+                    </p>
+
+                    <!-- Quick Stats -->
+                    <div class="flex gap-8 mb-10">
+                        <div>
+                            <p class="text-2xl font-bold">AI</p>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Expertise</p>
+                        </div>
+                        <div class="w-px bg-slate-200 dark:bg-slate-800"></div>
+                        <div>
+                            <p class="text-2xl font-bold">Full Stack</p>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Development</p>
+                        </div>
+                        <div class="w-px bg-slate-200 dark:bg-slate-800"></div>
+                        <div>
+                            <p class="text-2xl font-bold">Web</p>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Solutions</p>
+                        </div>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-wrap gap-4">
+                        <a href="mailto:neeranjanrit@gmail.com"
+                            class="bg-primary text-white dark:bg-white dark:text-black px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+                            <span class="material-icons-outlined text-sm">email</span>
+                            Get in Touch
+                        </a>
+                        <a href="https://neeranjan.online" target="_blank" rel="noopener"
+                            class="border border-slate-300 dark:border-slate-700 px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:border-black dark:hover:border-white transition-colors inline-flex items-center gap-2">
+                            <span class="material-icons-outlined text-sm">language</span>
+                            Visit Website
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Contact Card -->
+                <div class="animate-in" style="animation-delay: 0.3s">
+                    <div class="bg-black dark:bg-white text-white dark:text-black p-10 relative overflow-hidden">
+                        <!-- Decorative pattern -->
+                        <div class="absolute top-0 right-0 w-32 h-32 opacity-5">
+                            <div class="grid grid-cols-8 gap-1.5">
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.3"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.5"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.7"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.9"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.7"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.5"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.3"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-current" style="opacity: 0.1"></div>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10">
+                            <div
+                                class="w-16 h-16 bg-white/10 dark:bg-black/10 rounded-full flex items-center justify-center mb-6">
+                                <span class="text-2xl font-black">NS</span>
+                            </div>
+                            <h2 class="text-2xl font-bold mb-1">Neeranjan Shankar</h2>
+                            <p class="text-sm opacity-60 mb-8">Full Stack Developer &amp; AI Specialist</p>
+
+                            <div class="space-y-5">
+                                <a href="mailto:neeranjanrit@gmail.com" class="flex items-center gap-4 group">
+                                    <div
+                                        class="w-10 h-10 bg-white/10 dark:bg-black/10 flex items-center justify-center rounded-full group-hover:bg-white/20 dark:group-hover:bg-black/20 transition-colors">
+                                        <span class="material-icons-outlined text-lg">email</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold tracking-widest uppercase opacity-40">Email</p>
+                                        <p class="text-sm font-medium">neeranjanrit@gmail.com</p>
+                                    </div>
+                                </a>
+                                <a href="https://neeranjan.online" target="_blank" rel="noopener"
+                                    class="flex items-center gap-4 group">
+                                    <div
+                                        class="w-10 h-10 bg-white/10 dark:bg-black/10 flex items-center justify-center rounded-full group-hover:bg-white/20 dark:group-hover:bg-black/20 transition-colors">
+                                        <span class="material-icons-outlined text-lg">language</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold tracking-widest uppercase opacity-40">Website
+                                        </p>
+                                        <p class="text-sm font-medium">neeranjan.online</p>
+                                    </div>
+                                </a>
+                                <a href="https://www.linkedin.com/in/neeranjan-shankar-407a52249/" target="_blank"
+                                    rel="noopener" class="flex items-center gap-4 group">
+                                    <div
+                                        class="w-10 h-10 bg-white/10 dark:bg-black/10 flex items-center justify-center rounded-full group-hover:bg-white/20 dark:group-hover:bg-black/20 transition-colors">
+                                        <span class="material-icons-outlined text-lg">person</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold tracking-widest uppercase opacity-40">LinkedIn
+                                        </p>
+                                        <p class="text-sm font-medium">Connect with me →</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="max-w-5xl mx-auto px-8 py-16">
+            <div class="mb-12 animate-in" style="animation-delay: 0.4s">
+                <p class="text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase mb-4">What I Do</p>
+                <h2 class="text-3xl font-bold tracking-tight">Services</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Service 1 -->
+                <div class="card-hover border border-slate-200 dark:border-slate-800 p-8 animate-in"
+                    style="animation-delay: 0.5s">
+                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
+                        <span class="material-icons-outlined text-xl">web</span>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">Custom Web Development</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                        End-to-end web applications built with modern frameworks. From landing pages to complex
+                        platforms,
+                        tailored to your business needs.
+                    </p>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="card-hover border border-slate-200 dark:border-slate-800 p-8 animate-in"
+                    style="animation-delay: 0.6s">
+                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
+                        <span class="material-icons-outlined text-xl">psychology</span>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">AI & ML Solutions</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                        Intelligent applications powered by machine learning. Predictive analytics, anomaly detection,
+                        and natural language processing.
+                    </p>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="card-hover border border-slate-200 dark:border-slate-800 p-8 animate-in"
+                    style="animation-delay: 0.7s">
+                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
+                        <span class="material-icons-outlined text-xl">cloud</span>
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">Cloud & Deployment</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                        Scalable cloud architectures on AWS, GCP, and Vercel. CI/CD pipelines, serverless functions,
+                        and production-ready deployments.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Banner -->
+        <section class="max-w-5xl mx-auto px-8 pb-16 animate-in" style="animation-delay: 0.8s">
+            <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-12 text-center">
+                <h3 class="text-2xl font-bold mb-3">Interested in working together?</h3>
+                <p class="text-sm text-slate-500 mb-8 max-w-md mx-auto">
+                    I build websites and AI-powered applications for clients. Let's discuss your project requirements.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="mailto:neeranjanrit@gmail.com?subject=Project%20Inquiry&body=Hi%20Neeranjan%2C%0A%0AI'm%20interested%20in%20your%20web%20development%20services.%0A%0AProject%20details%3A%0A"
+                        class="bg-primary text-white dark:bg-white dark:text-black px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+                        <span class="material-icons-outlined text-sm">send</span>
+                        Start a Project
+                    </a>
+                    <a href="https://www.linkedin.com/in/neeranjan-shankar-407a52249/" target="_blank" rel="noopener"
+                        class="border border-slate-300 dark:border-slate-700 px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:border-black dark:hover:border-white transition-colors inline-flex items-center gap-2">
+                        <span class="material-icons-outlined text-sm">link</span>
+                        LinkedIn Profile
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 py-12">
+        <div class="max-w-5xl mx-auto px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-black dark:bg-white rounded-full flex items-center justify-center">
+                        <span class="material-icons-outlined text-white dark:text-black text-[10px]">hub</span>
+                    </div>
+                    <span class="font-bold tracking-tight uppercase">Nexus AI</span>
+                    <span class="text-slate-300 dark:text-slate-700 mx-2">|</span>
+                    <span class="text-sm text-slate-500">Built by <a href="https://neeranjan.online" target="_blank"
+                            class="text-black dark:text-white hover:opacity-70 transition-opacity font-medium">Neeranjan
+                            Shankar</a></span>
+                </div>
+                <div class="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <a href="https://neeranjan.online" target="_blank"
+                        class="hover:opacity-60 transition-opacity">Portfolio</a>
+                    <a href="https://www.linkedin.com/in/neeranjan-shankar-407a52249/" target="_blank"
+                        class="hover:opacity-60 transition-opacity">LinkedIn</a>
+                    <a href="mailto:neeranjanrit@gmail.com" class="hover:opacity-60 transition-opacity">Email</a>
+                </div>
+            </div>
+            <p class="text-center text-[10px] text-slate-400 uppercase tracking-widest mt-8">© 2025 Nexus AI Platform —
+                All Rights Reserved</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
